@@ -44,8 +44,8 @@ def getMessage():
 def webhook():
     bot.remove_webhook()
     
-    # 🛑 Altere aqui para a URL pública (.onrender.com) que aparece no seu painel!
-    url_render = "https://SUA_URL_AQUI.onrender.com" 
+    # 🛑 APAGUE o link abaixo e cole o seu link público (.onrender.com) aqui dentro das aspas:
+    url_render = "https://COLOQUE_AQUI_O_LINK_QUE_TERMINA_EM.onrender.com" 
     
     bot.set_webhook(url=f"{url_render}/{TOKEN_BOT}")
     return "Webhook configurado com sucesso no Bot 3!", 200
