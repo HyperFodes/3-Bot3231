@@ -53,7 +53,6 @@ def enviar_boas_vindas(message):
         bot.send_photo(message.chat.id, LINK_BANNER_BOAS_VINDAS, caption=texto, reply_markup=markup, parse_mode="Markdown")
         
     except Exception:
-        # Texto alternativo caso os File IDs ainda não tenham sido configurados nas variáveis
         texto_config = "👋 Bot #3 Configurado!\n\n📥 *Como gerar os File IDs agora:*\nBasta enviar a foto do seu Banner e do seu QR Code aqui no chat. O bot vai ler e te devolver o código de texto na hora!"
         bot.send_message(message.chat.id, texto_config, reply_markup=markup, parse_mode="Markdown")
 
@@ -106,11 +105,12 @@ def escutar_botoes(call):
         bot.answer_callback_query(call.id)
         id_cliente = call.data.split("_")[1]
         try:
+            # CORRIGIDO AQUI: Parênteses fechando perfeitamente e sem quebras
             link_grupo = bot.create_chat_invite_link(chat_id=ID_GRUPO_VIP, member_limit=1)
             bot.send_message(id_cliente, f"✅ Seu pagamento foi aprovado! / Your payment has been approved!\n\nLink para entrar no grupo VIP:\n{link_grupo.invite_link}")
             bot.edit_message_caption(chat_id=chat_id, message_id=call.message.message_id, caption="✅ Cliente aprovado e link permanente enviado!", reply_markup=None)
         except Exception as e:
-            bot.send_message(chat_id, f"❌ Erro ao gerar link. Certifique-se de que o BOT #3 está no grupo VIP como ADMINISTRADOR.\n\nErro: {e}")
+            bot.send_message(chat_id, f"❌ Erro ao gerar link. Certifique-se de que o BOT #3 está no grupo VIP como ADMINISTRADOR com permissão para criar links.\n\nErro: {e}")
 
     elif call.data.startswith("recusar_"):
         bot.answer_callback_query(call.id)
@@ -128,7 +128,6 @@ def tratar_fotos(message):
     chat_id = message.chat.id
     file_id_gerado = message.photo[-1].file_id
     
-    # Se o usuário iniciou um processo de compra, a foto é tratada como comprovante
     if chat_id in usuarios_comprando:
         forma_pagamento = usuarios_comprando[chat_id]
         markup_admin = InlineKeyboardMarkup()
@@ -145,7 +144,6 @@ def tratar_fotos(message):
         bot.send_message(chat_id, "⏳ Comprovante recebido! Aguarde a verificação.\n⏳ Receipt received! Please wait for verification.")
         del usuarios_comprando[chat_id]
         
-    # Se for VOCÊ enviando fotos fora do fluxo de compra, o bot vira um extrator de File ID automático!
     else:
         texto_resposta = (
             f"📸 *Nova imagem detectada pelo seu Bot #3!*\n\n"
@@ -164,4 +162,32 @@ def processar_pre_checkout(pre_checkout_query):
 def pagamento_stars_sucesso(message):
     chat_id = message.chat.id
     try:
-        link_grupo = bot.create_chat_invite_link(chat_id=ID_GRUPO_VIP, member_limit=
+        link_grupo = bot.create_chat_invite_link(chat_id=ID_GRUPO_VIP, member_limit=1)
+        bot.send_message(chat_id, f"🎉 Thank you for your payment! Join here: {link_grupo.invite_link}")
+    except Exception as e:
+        bot.send_message(chat_id, f"🎉 Payment successful! Please contact support for your link: @HardHandsG\n\n(Error: {e})")
+
+
+# ==========================================
+# 5. ROTAS DO SERVIDOR WEB (RENDER - AUTOMÁTICO)
+# ==========================================
+@app.route('/' + TOKEN_BOT, methods=['POST'])
+def getMessage():
+    try:
+        json_string = request.get_data().decode('utf-8')
+        update = telebot.types.Update.de_json(json_string)
+        bot.process_new_updates([update])
+        return "!", 200
+    except Exception:
+        return "Erro", 500
+
+@app.route("/")
+def webhook():
+    bot.remove_webhook()
+    url_render = request.url_root.rstrip('/').replace("http://", "https://")
+    bot.set_webhook(url=f"{url_render}/{TOKEN_BOT}")
+    return f"✅ Webhook configurado automaticamente para o Bot 3: {url_render}", 200
+
+if __name__ == "__main__":
+    port = int(os.environ.get('PORT', 10000))
+    app.run(host="0.0.0.0", port=port)
