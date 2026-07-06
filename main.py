@@ -10,9 +10,9 @@ TOKEN_BOT = "8638229733:AAEN-utrV_BXikCwTKKtVvFE2By31fEzVx0"
 SEU_ID_TELEGRAM = 7665685378
 ID_GRUPO_VIP = -1004348254600
 
-# Mande as fotos para o bot para pegar os novos códigos e substituir aqui depois!
-LINK_BANNER_BOAS_VINDAS = "COLOQUE_O_FILE_ID_DO_BANNER_AQUI"
-LINK_QRCODE_PIX = "COLOQUE_O_FILE_ID_DO_QRCODE_AQUI"
+# VARIÁVEIS ATUALIZADAS COM SEUS NOVOS FILE IDs!
+LINK_BANNER_BOAS_VINDAS = "AgACAgEAAxkBAAMCaktrzFA_kDwe9SnCqkXPMiOIwTEAAnkMaxtSJVhGAwhkm2S2Je8BAAMCAAN5AAM8BA"
+LINK_QRCODE_PIX = "AgACAgEAAxkBAAMSaktujAOvEdgsGNg5BhV8Z5WRtyMAAnIMaxtEBWBGQdksNNPtzWEBAAMCAAN5AAM8BA"
 
 # Suas carteiras oficiais configuradas
 CARTEIRA_BTC = "bc1qv0vt52xa356n5sfz6ayq9enfr77teemr4htqtf"
@@ -52,9 +52,8 @@ def enviar_boas_vindas(message):
         
         bot.send_photo(message.chat.id, LINK_BANNER_BOAS_VINDAS, caption=texto, reply_markup=markup, parse_mode="Markdown")
         
-    except Exception:
-        texto_config = "👋 Bot #3 Configurado!\n\n📥 *Como gerar os File IDs agora:*\nBasta enviar a foto do seu Banner e do seu QR Code aqui no chat. O bot vai ler e te devolver o código de texto na hora!"
-        bot.send_message(message.chat.id, texto_config, reply_markup=markup, parse_mode="Markdown")
+    except Exception as e:
+        bot.send_message(message.chat.id, f"❌ Erro ao carregar imagem de boas-vindas. Erro: {e}")
 
 
 # --- GERENCIAMENTO DOS BOTÕES ---
@@ -105,7 +104,6 @@ def escutar_botoes(call):
         bot.answer_callback_query(call.id)
         id_cliente = call.data.split("_")[1]
         try:
-            # CORRIGIDO AQUI: Parênteses fechando perfeitamente e sem quebras
             link_grupo = bot.create_chat_invite_link(chat_id=ID_GRUPO_VIP, member_limit=1)
             bot.send_message(id_cliente, f"✅ Seu pagamento foi aprovado! / Your payment has been approved!\n\nLink para entrar no grupo VIP:\n{link_grupo.invite_link}")
             bot.edit_message_caption(chat_id=chat_id, message_id=call.message.message_id, caption="✅ Cliente aprovado e link permanente enviado!", reply_markup=None)
@@ -145,6 +143,7 @@ def tratar_fotos(message):
         del usuarios_comprando[chat_id]
         
     else:
+        # Mantém o extrator ativo caso você precise trocar de imagem no futuro
         texto_resposta = (
             f"📸 *Nova imagem detectada pelo seu Bot #3!*\n\n"
             f"Copie o código abaixo para colocar nas variáveis:\n\n"
